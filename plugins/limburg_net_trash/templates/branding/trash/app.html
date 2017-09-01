@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html><head>
+<link href="jquery/jquery.mobile.inline-png-1.4.2.min.css" rel="stylesheet" media="screen"/>
+<script type="text/javascript" src="jquery/jquery-1.11.0.min.js">
+</script>
+<script type="text/javascript" src="jquery/jquery.mobile-1.4.2.min.js">
+</script>
+<script type="text/javascript" src="jquery.tmpl.min.js">
+</script>
+<script type="text/javascript" src="rogerthat/rogerthat-1.0.js">
+</script>
+<script type="text/javascript" src="rogerthat/rogerthat.api-1.0.js">
+</script>
+<script type="text/javascript" src="moment-with-locales.min.js">
+</script>
+<script type="text/javascript" src="app_translations.js">
+</script>
+<script type="text/javascript" src="app.js">
+</script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta property="rt:style:text-color" content="#5BC4BF"/>
+<meta property="rt:style:background-color" content="#FFFFFF"/>
+<meta property="rt:style:menu-item-color" content="#5BC4BF"/>
+<meta property="rt:style:show-header" content="false"/>
+<meta property="rt:style:color-scheme" content="light"/>
+<style type="text/css">
+    body {
+        padding: 0px;
+        margin: 0px;
+        font-family: Arial;
+        font-size: 1em;
+        background-color: #FFFFFF;
+        color: #5BC4BF;
+    }
+</style>
+</head>
+<body class="ui-mobile-viewport ui-overlay-a">
+    <div data-role="page" id="overview" tabindex="0" class="ui-page ui-page-theme-a ui-page-active ui-page-header-fullscreen ui-page-footer-fullscreen">
+        <div role="main" class="ui-content">
+            <ul id="overview-listview" data-role="listview" data-inset="true" style="margin-top: 0;">
+                <li>
+                    <div>
+                        <img src="images/logo.png" alt="Gemeente Neerpelt" style="width: 100%; height: auto;">
+                    </div>
+                    <div class="current-location">
+                          <a href="#location-streets" id="location-url" data-transition="slide" class="ui-btn ui-btn-icon-right ui-icon-gear">Geen locatie ingesteld</a>
+                    </div>
+                    <div class="set-location-error" style="display: none;">
+                        <p style="padding: 15px; background-color: #f2dede; font-size: 1em;">Error</p>
+                    </div>
+                    <div class="notifications-set" style="display: none;">
+                          <a href="#notifications" id="notifications-url" data-transition="slide" class="ui-btn ui-btn-icon-right ui-icon-info">Herinner mij</a>
+                    </div>
+                </li>
+                <li class="collections" style="display: none;">
+                    <div>
+                          <ul data-role="listview" style="margin-bottom: 1em;"></ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div data-role="page" id="location-streets">
+        <div data-role="header">
+            <a href="#overview" class="ui-btn-left ui-btn ui-icon-arrow-l ui-btn-icon-left ui-btn-inline ui-mini ui-btn-icon-notext" data-role="button" role="button" data-transition="slide" data-direction="reverse"></a>
+            <h1 class="detail-title">Straten</h1>
+        </div>
+        <!-- /header -->
+        <div data-role="content">
+            <ul data-role="listview">
+            </ul>
+        </div>
+        <!-- /content -->
+    </div>
+    
+    <div data-role="page" id="location-housenr">
+        <div data-role="header">
+            <a href="#location-streets" class="ui-btn-left ui-btn ui-icon-arrow-l ui-btn-icon-left ui-btn-inline ui-mini ui-btn-icon-notext" data-role="button" role="button" data-transition="slide" data-direction="reverse"></a>
+            <h1 class="detail-title">Huisnummers</h1>
+        </div>
+        <!-- /header -->
+        <div data-role="content">
+            <ul data-role="listview">
+            </ul>
+        </div>
+        <!-- /content -->
+    </div>
+    
+    <div data-role="page" id="notifications">
+        <div data-role="header">
+            <a href="#overview" class="ui-btn-left ui-btn ui-icon-arrow-l ui-btn-icon-left ui-btn-inline ui-mini ui-btn-icon-notext" data-role="button" role="button" data-transition="slide" data-direction="reverse"></a>
+            <h1 class="detail-title">Herinner mij</h1>
+        </div>
+        <!-- /header -->
+        <div data-role="content">
+            <ul data-role="listview" style="padding: 0.5em;">
+                <li>
+                    <div>
+		                <fieldset data-role="controlgroup"></fieldset>
+		           </div>
+                </li>
+                <li>
+                    <div>
+                          <a href="#overview" id="notifications-save" class="ui-btn ui-corner-all">Opslaan</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- /content -->
+    </div>
+</body>
+</html>

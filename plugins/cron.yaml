@@ -1,0 +1,4 @@
+cron:
+- description: Broadcast notifications
+  url: /admin/cron/notifications/broadcast
+  schedule: every day 18:00
