@@ -20,61 +20,31 @@ import datetime
 import json
 import logging
 from urllib import urlencode
+from bs4 import BeautifulSoup as BS
+import urllib2
+import sys
+import HTMLParser
+from icalendar import Calendar, Event, vDatetime
 
 from google.appengine.api import urlfetch
 from google.appengine.ext import deferred, ndb
 from mcfw.cache import cached
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.limburg_net_trash.models import UserLocation, Settings
+from plugins.limburg_net_trash.models import UserLocation
 from plugins.limburg_net_trash.plugin_consts import HTTPS_BASE_URL, ROGERTHAT_EXCEPTION_CODE_SERVICE_USER_NOT_FOUND, \
     ROGERTHAT_EXCEPTION_CODE_MESSAGE_USER_NOT_FOUNDS
 from plugins.limburg_net_trash.plugin_utils import today
 from plugins.limburg_net_trash.to import HouseTO, StreetTO, ActivityTO, CollectionTO
 from plugins.rogerthat_api.api import system, messaging, RogerthatApiException
 from plugins.rogerthat_api.to import MemberTO
+from plugins.rogerthat_api.models.settings import RogerthatSettings
 from framework.utils import guid, now
 
-
-@returns(Settings)
-@arguments(sik=unicode)
-def get_settings(sik):
-    return Settings.create_key(sik).get()
-
-
-@cached(1, request=True, memcache=False)
-@returns(Settings)
-@arguments(sik=unicode)
-def get_settings_cached(sik):
-    return get_settings(sik)
-
-
-@returns(bool)
-@arguments(sik=unicode)
-def is_valid_sik(sik):
-    if get_settings_cached(sik):
-        return True
-    return False
-
-
-@cached(1, request=True, memcache=False)
-@returns(dict)
-@arguments(sik=unicode)
-def get_api_headers(sik):
-    settings = get_settings_cached(sik)
-    base64string = base64.encodestring('%s:%s' % (settings.https_username, settings.https_pwd))[:-1]
-    headers = {}
-    headers['Authorization'] = "Basic %s" % base64string
-    return headers
-
-
-@cached(1, lifetime=3500, request=False, memcache=True)
 @returns(unicode)
 @arguments(sik=unicode)
 def get_api_login_token(sik):
-    settings = get_settings_cached(sik)
+
     args = dict()
-    args["servicegebruiker"] = settings.service_user
-    args["servicepwd"] = settings.service_pwd
     url = "%slogin.json?%s" % (HTTPS_BASE_URL, urlencode(args))
 
     result = urlfetch.fetch(url=url, method=urlfetch.POST, headers=get_api_headers(sik), deadline=55)
@@ -87,69 +57,83 @@ def get_api_login_token(sik):
     return unicode(json_response["loginkey"])
 
 
-@cached(1, lifetime=86400, request=False, memcache=True)
 @returns([StreetTO])
 @arguments(sik=unicode)
 def get_api_streets(sik):
-    settings = get_settings_cached(sik)
+
     args = dict()
-    args["loginkey"] = get_api_login_token(sik)
-    args["niscode"] = settings.nis_code
-    url = "%sgeef_straten_van_gemeente.json?%s" % (HTTPS_BASE_URL, urlencode(args))
-    result = urlfetch.fetch(url=url, headers=get_api_headers(sik), deadline=55)
-    logging.info(result.content)
+    URL_POST = 'http://www.ivvo.be/ahah-gemeente-exposed-callback'
+
+    sdata = {}
+    sdata['field_gemeente_value'] = 'Veurne'
+    sdata['field_straat_value'] = ''
+    sdata['field_straatnrvan_value'] = ''
+    sdata['field_straatnrtot_value'] = ''
+
+    sdata = urlencode(sdata)
+
+    result = urlfetch.fetch(url=URL_POST, deadline=55, payload=sdata, method=2)
 
     if result.status_code != 200:
         raise Exception("Failed when loading get_api_streets")
 
-    json_response = json.loads(result.content)
-    return [StreetTO.fromObj(s) for s in json_response["l"]]
+    decodedcontent = result.content.decode('unicode_escape')
+
+    soup = BS(decodedcontent, 'html.parser')
+    contents = [x.text.encode('cp1252').decode('utf8') for x in soup.find(id="field_straat_value").find_all('option')]
+    contents = list(filter(None, contents))
+
+    lijstNRS = [x for x in range(0,len(contents))]
+    lijstCompleet = [{'s': straat, 'nr': nummer} for straat, nummer in zip(contents, lijstNRS)]
+    logging.info(lijstCompleet)
+
+    json_response = json.loads(json.dumps(lijstCompleet))
+    return [StreetTO.fromObj(s) for s in json_response]
 
 
-@cached(1, lifetime=86400, request=False, memcache=True)
 @returns([HouseTO])
 @arguments(sik=unicode, street_number=long)
 def get_api_houses(sik, street_number):
     args = dict()
-    args["loginkey"] = get_api_login_token(sik)
-    args["straatnummer"] = street_number
-    url = "%sgeef_huisnummers_van_straat.json?%s" % (HTTPS_BASE_URL, urlencode(args))
-    result = urlfetch.fetch(url=url, headers=get_api_headers(sik), deadline=55)
-    logging.info(result.content)
 
-    if result.status_code != 200:
-        raise Exception("Failed when loading get_api_houses")
+    lijstNRS = [x for x in range(1,800)]
+    lijstBUS = ["" for w in range(1,800)]
+    lijstCompleet = [{'h': huisnr, 't': bus} for huisnr, bus in zip(lijstNRS, lijstBUS)]
 
-    json_response = json.loads(result.content)
-    return [HouseTO.fromObj(s) for s in json_response["l"]]
+    json_response = json.loads(json.dumps(lijstCompleet))
+
+    return [HouseTO.fromObj(s) for s in json_response]
 
 
-@cached(1, lifetime=86400, request=False, memcache=True)
 @returns([ActivityTO])
 @arguments(sik=unicode)
 def get_api_activities(sik):
     args = dict()
-    args["loginkey"] = get_api_login_token(sik)
-    url = "%sgeef_activiteiten.json?%s" % (HTTPS_BASE_URL, urlencode(args))
-    result = urlfetch.fetch(url=url, headers=get_api_headers(sik), deadline=55)
-    logging.info(result.content)
 
-    if result.status_code != 200:
-        raise Exception("Failed when loading get_api_activities")
+    lijstAFVAL = []
+    lijstAFVAL.append([7 , 'Grofvuil op afroep'])
+    lijstAFVAL.append([21 , 'Restafval'])
+    lijstAFVAL.append([23 , 'Kerstboom'])
+    lijstAFVAL.append([27 , 'Papier en karton Zone 1'])
+    lijstAFVAL.append([37 , 'Papier en karton Zone 2'])
+    lijstAFVAL.append([47 , 'Papier en karton Zone 3'])
+    lijstAFVAL.append([28 , 'PMD'])
+    lijstAFVAL.append([29 , 'Snoeihout op afroep'])
+    lijstAFVAL.append([30 , 'Textiel'])
+    lijstAFVAL.append([31 , 'Oude metalen op afroep'])
+    lijstAFVAL.append([32 , 'GFT'])
+    lijstCompleet = [{'nr': nummers, 's': beschrijvingAfval} for nummers, beschrijvingAfval in lijstAFVAL]
 
-    json_response = json.loads(result.content)
-    return [ActivityTO.fromObj(s) for s in json_response["l"]]
+    json_response = json.loads(json.dumps(lijstCompleet))
+
+    return [ActivityTO.fromObj(s) for s in json_response]
 
 
-@cached(1, lifetime=86400, request=False, memcache=True)
 @returns([CollectionTO])
-@arguments(sik=unicode, street_number=long, house_number=long, house_bus=unicode, time_from=long)
-def get_api_collections(sik, street_number, house_number, house_bus, time_from):
-    settings = get_settings_cached(sik)
+@arguments(sik=unicode, street_name=unicode, house_number=long, house_bus=unicode, time_from=long)
+def get_api_collections(sik, street_name, house_number, house_bus, time_from):
     args = dict()
-    args["loginkey"] = get_api_login_token(sik)
-    args["niscode"] = settings.nis_code
-    args["straatnummer"] = street_number
+    args["straatnaam"] = street_name
     args["huisnummer"] = house_number
     args["toevoeging"] = house_bus
 
@@ -157,43 +141,51 @@ def get_api_collections(sik, street_number, house_number, house_bus, time_from):
 
     args["van"] = u"%s/%s/%s" % (d_from.day, d_from.month, d_from.year)
     args["tem"] = u"31/12/%s" % d_from.year
-    url = "%sgeef_ophalingen.json?%s" % (HTTPS_BASE_URL, urlencode(args))
-    result = urlfetch.fetch(url=url, headers=get_api_headers(sik), deadline=55)
-    logging.info(result.content)
+    BASIS_URL = 'http://www.ivvo.be/icallink/?'
+    f = { 'field_gemeente_value' : 'Veurne', 'field_straat_value' : street_name.encode('utf-8'), 'field_straatnrvan_value' : house_number}
 
-    if result.status_code != 200:
-        logging.error("failed to load get_api_collections")
+    REQ_URL = BASIS_URL + urlencode(f)
+
+    try:
+        result = urlfetch.fetch(url=REQ_URL, deadline=55)
+        if result.status_code == 200:
+            logging.info(result.content)
+        else:
+            logging.error("failed to load get_api_collections")
+            raise Exception("Het laden van de afvalkalender is mislukt.")
+    except urlfetch.Error:
+        logging.error('Caught exception fetching url')
         raise Exception("Het laden van de afvalkalender is mislukt.")
+
+    cal = Calendar.from_ical(result.content)
+    lijst1 = []
+    lijst2 = []
+    for event in cal.walk('vevent'):
+
+        date = event.get('dtstart')
+        summary = event.get('summary')
+        summaryID = 33
+        lijst1.append(str(date.dt))
+        if str(summary)=="Grofvuil op afroep": summaryID = 7
+        if str(summary)=="Restafval": summaryID=21
+        if str(summary)=="Kerstboom": summaryID=23
+        if str(summary)=="Papier en karton Zone 1": summaryID=27
+        if str(summary)=="Papier en karton Zone 2": summaryID=37
+        if str(summary)=="Papier en karton Zone 3": summaryID=47
+        if str(summary)=="PMD": summaryID=28
+        if str(summary)=="Snoeihout op afroep": summaryID=29
+        if str(summary)=="Textiel": summaryID=33
+        if str(summary)=="Oude metalen op afroep": summaryID=31
+        if str(summary)=="GFT": summaryID=32
+        lijst2.append(summaryID)
+    lijstCompleet = [{'d': datum, 'a': afval} for datum, afval in zip(lijst1, lijst2)]
 
     activities = {}
     for a in get_api_activities(sik):
         activities[a.number] = a
-    json_response = json.loads(result.content)
-    if json_response["errcode"] == 1:
-        logging.error("get_api_collections returned an error")
-        raise Exception("Het laden van de afvalkalender is mislukt.")
-    elif json_response["errcode"] == 2:
-        logging.error("get_api_collections returned an error")
-        raise Exception(json_response["err"])
+    json_response = json.loads(json.dumps(lijstCompleet))
 
-    collections = [CollectionTO.fromObj(s, activities[s["a"]]) for s in json_response["l"] if not s["c"]]
-
-    if d_from.month >= 12:
-        args["van"] = u"1/1/%s" % (d_from.year + 1)
-        args["tem"] = u"31/12/%s" % (d_from.year + 1)
-        url = "%sgeef_ophalingen.json?%s" % (HTTPS_BASE_URL, urlencode(args))
-        result = urlfetch.fetch(url=url, headers=get_api_headers(sik), deadline=55)
-        logging.info(result.content)
-
-        if result.status_code != 200:
-            logging.error("failed to load get_api_collections for next year")
-            raise Exception("Het laden van de afvalkalender is mislukt.")
-
-        json_response = json.loads(result.content)
-        try:
-            collections.extend([CollectionTO.fromObj(s, activities[s["a"]]) for s in json_response["l"] if not s["c"]])
-        except:
-            logging.exception("Failed when loading get_api_collections for next year")
+    collections = [CollectionTO.fromObj(s, activities[s["a"]]) for s in json_response]
 
     return collections
 
@@ -228,7 +220,8 @@ def set_location(sik, service_identity, email, app_id, params):
         street_name = jsondata['info']['street']['name']
         house_number = long(jsondata['info']['house']['number'])
         house_bus = jsondata['info']['house']['bus']
-        collections = get_api_collections(sik, street_number, house_number, house_bus, today())
+        collections = get_api_collections(sik, street_name, house_number, house_bus, today())
+
     except Exception, ex:
         return {"result": None,
                 "error": ex.message}
@@ -248,7 +241,6 @@ def set_location(sik, service_identity, email, app_id, params):
     ul.put()
 
     update_user_data(sik, service_identity, email, app_id, ul.address, ul.notifications, collections)
-
     return {"result": u"Location was set",
             "error": None}
 
@@ -258,7 +250,7 @@ def update_user_data(sik, service_identity, email, app_id, address, notification
 
 
 def _update_user_data(sik, service_identity, email, app_id, address, notifications, collections):
-    settings = get_settings_cached(sik)
+    settings = RogerthatSettings.create_key(sik).get()
     user_data = dict()
     user_data["trash"] = {}
     user_data["trash"]["address"] = address
@@ -292,7 +284,7 @@ def set_notifications(sik, service_identity, email, app_id, params):
 @returns(unicode)
 @arguments(sik=unicode, service_identity=unicode)
 def get_branding_key(sik, service_identity):
-    settings = get_settings_cached(sik)
+    settings = RogerthatSettings.create_key(sik).get()
     si = system.get_identity(settings.api_key, service_identity)
     return si.description_branding
 
@@ -303,7 +295,7 @@ def send_collection_message(sik, service_identity, email, app_id, message):
 
 
 def _send_collection_message(sik, service_identity, email, app_id, message, json_rpc_id):
-    settings = get_settings_cached(sik)
+    settings = RogerthatSettings.create_key(sik).get()
     member = MemberTO()
     member.member = email
     member.app_id = app_id

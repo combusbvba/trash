@@ -19,30 +19,6 @@ from google.appengine.ext import ndb
 from plugins.limburg_net_trash import plugin_consts
 
 
-class Settings(ndb.Model):
-    api_key = ndb.StringProperty(indexed=False)
-
-    https_username = ndb.StringProperty(indexed=False)
-    https_pwd = ndb.StringProperty(indexed=False)
-
-    service_user = ndb.StringProperty(indexed=False)
-    service_pwd = ndb.StringProperty(indexed=False)
-
-    nis_code = ndb.IntegerProperty(indexed=False)
-
-    @property
-    def sik(self):
-        return self.key.id().decode('utf8')
-
-    @classmethod
-    def create_key(cls, sik):
-        return ndb.Key(cls, sik, namespace=plugin_consts.NAMESPACE)
-
-    @classmethod
-    def query(cls, *args, **kwargs):
-        kwargs['namespace'] = plugin_consts.NAMESPACE
-        return super(Settings, cls).query(*args, **kwargs)
-
 
 class UserLocation(ndb.Model):
     service_identity = ndb.StringProperty()

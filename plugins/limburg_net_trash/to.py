@@ -110,8 +110,8 @@ class ActivityTO(object):
         to = cls()
         to.number = obj["nr"]
         to.name = obj["s"]
-        if to.name == u"grofvuil":
-            to.name = u"grofvuil (enkel op aanvraag)"
+#        if to.name == u"grofvuil":
+#            to.name = u"grofvuil (enkel op aanvraag)"
 
         return to
 
@@ -128,7 +128,8 @@ def _s_activity_to(stream, to):
     s_unicode(stream, to.name)
 
 def _s_activity_list(stream, l):
-    s_long(stream, CURRENT_ACTIVITY_VERSION)
+#    s_long(stream, CURRENT_ACTIVITY_VERSION)
+    s_long(stream, 1)
     f = get_list_serializer(_s_activity_to)
     f(stream, l)
 
@@ -153,10 +154,10 @@ class CollectionTO(object):
     @classmethod
     def fromObj(cls, obj, activity):
         to = cls()
-        d = obj["d"].split("/")
-        to.year = long(d[2])
+        d = obj["d"].split("-")
+        to.year = long(d[0])
         to.month = long(d[1])
-        to.day = long(d[0])
+        to.day = long(d[2])
         d = datetime.date(to.year, to.month, to.day)
         to.epoch = get_epoch_from_datetime(d)
         to.activity = activity

@@ -24,9 +24,10 @@ from framework.bizz.job import run_job
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb.query import QueryOptions
 from plugins.limburg_net_trash.localizer import translate_key
-from plugins.limburg_net_trash.models import UserLocation, Settings
+from plugins.limburg_net_trash.models import UserLocation
 from plugins.limburg_net_trash.plugin_bizz import get_api_collections, update_user_data, send_collection_message
 from plugins.limburg_net_trash.plugin_utils import today
+from plugins.rogerthat_api.models.settings import RogerthatSettings
 from framework.utils import now
 import webapp2
 
@@ -34,12 +35,8 @@ import webapp2
 class BroadcastNotificationsHandler(webapp2.RequestHandler):
 
     def get(self):
-        run_job(_query_settings, [], _worker_settings, [])
-
-
-def _query_settings():
-    return Settings.query()
-
+#        run_job(_query_settings, [], _worker_settings, [])
+        _worker_settings(RogerthatSettings.query().get())
 
 def _worker_settings(settings):
     tomorrow = now() + 86400
