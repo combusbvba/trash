@@ -1,1 +1,1 @@
-# plugin-limburgnet-trash
+# plugin-Veurne-trash
