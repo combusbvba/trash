@@ -16,7 +16,7 @@
 # @@license_version:1.2@@
 
 from google.appengine.ext import ndb
-from plugins.limburg_net_trash import plugin_consts
+from plugins.veurne_trash import plugin_consts
 
 
 

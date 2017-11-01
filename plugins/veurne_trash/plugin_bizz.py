@@ -30,11 +30,11 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import deferred, ndb
 from mcfw.cache import cached
 from mcfw.rpc import returns, arguments, serialize_complex_value
-from plugins.limburg_net_trash.models import UserLocation
-from plugins.limburg_net_trash.plugin_consts import HTTPS_BASE_URL, ROGERTHAT_EXCEPTION_CODE_SERVICE_USER_NOT_FOUND, \
+from plugins.veurne_trash.models import UserLocation
+from plugins.veurne_net_trash.plugin_consts import HTTPS_BASE_URL, ROGERTHAT_EXCEPTION_CODE_SERVICE_USER_NOT_FOUND, \
     ROGERTHAT_EXCEPTION_CODE_MESSAGE_USER_NOT_FOUNDS
-from plugins.limburg_net_trash.plugin_utils import today
-from plugins.limburg_net_trash.to import HouseTO, StreetTO, ActivityTO, CollectionTO
+from plugins.veurne_trash.plugin_utils import today
+from plugins.veurne_trash.to import HouseTO, StreetTO, ActivityTO, CollectionTO
 from plugins.rogerthat_api.api import system, messaging, RogerthatApiException
 from plugins.rogerthat_api.to import MemberTO
 from plugins.rogerthat_api.models.settings import RogerthatSettings

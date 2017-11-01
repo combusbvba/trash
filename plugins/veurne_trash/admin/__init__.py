@@ -15,9 +15,12 @@
 #
 # @@license_version:1.2@@
 
-NAMESPACE = 'limburg_net_trash'
+import webapp2
 
-HTTPS_BASE_URL = u"https://apps.limburg.net/cardsext/"
+from plugins.veurne_trash.models import UserLocation
 
-ROGERTHAT_EXCEPTION_CODE_MESSAGE_USER_NOT_FOUNDS = 30000
-ROGERTHAT_EXCEPTION_CODE_SERVICE_USER_NOT_FOUND = 60011
+class StatsHandler(webapp2.RequestHandler):
+
+    def get(self):
+        count = UserLocation.all(keys_only=True).count(None)
+        self.response.out.write(count)

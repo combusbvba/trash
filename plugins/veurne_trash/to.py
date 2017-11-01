@@ -17,7 +17,7 @@
 
 import datetime
 
-from plugins.limburg_net_trash.plugin_utils import get_epoch_from_datetime
+from plugins.veurne_trash.plugin_utils import get_epoch_from_datetime
 from mcfw.properties import long_property, unicode_property, typed_property
 from mcfw.serialization import register, deserializer, ds_unicode, serializer, s_unicode, s_long, get_list_serializer, \
     ds_long, get_list_deserializer, List

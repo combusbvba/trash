@@ -16,16 +16,16 @@
 # @@license_version:1.2@@
 
 from framework.plugin_loader import Plugin, get_plugin
-from plugins.limburg_net_trash.admin import StatsHandler
-from plugins.limburg_net_trash.cron import BroadcastNotificationsHandler
-from plugins.limburg_net_trash.rogerthat_callbacks import system_api_call
+from plugins.veurne_trash.admin import StatsHandler
+from plugins.veurne_trash.cron import BroadcastNotificationsHandler
+from plugins.veurne_trash.rogerthat_callbacks import system_api_call
 from framework.utils.plugins import Handler
 from plugins.rogerthat_api.rogerthat_api_plugin import RogerthatApiPlugin
 
-class LimburgNetTrashPlugin(Plugin):
+class VeurneTrashPlugin(Plugin):
 
     def __init__(self, configuration):
-        super(LimburgNetTrashPlugin, self).__init__(configuration)
+        super(VeurneTrashPlugin, self).__init__(configuration)
         rogerthat_api_plugin = get_plugin('rogerthat_api')
         assert isinstance(rogerthat_api_plugin, RogerthatApiPlugin)
         rogerthat_api_plugin.subscribe('system.api_call', system_api_call)

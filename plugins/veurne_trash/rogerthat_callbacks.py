@@ -15,8 +15,8 @@
 #
 # @@license_version:1.2@@
 
-from plugins.limburg_net_trash.plugin_bizz import get_streets, get_street_numbers, set_location, set_notifications
-from plugins.limburg_net_trash.plugin_utils import get_email_and_app_id_from_userdetails
+from plugins.veurne_trash.plugin_bizz import get_streets, get_street_numbers, set_location, set_notifications
+from plugins.veurne_trash.plugin_utils import get_email_and_app_id_from_userdetails
 
 def system_api_call(rt_settings, id_, email, method, params, tag, service_identity, user_details):
     email, app_id = get_email_and_app_id_from_userdetails(user_details)
