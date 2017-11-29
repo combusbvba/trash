@@ -38,9 +38,9 @@ class BroadcastNotificationsHandler(webapp2.RequestHandler):
 #        run_job(_query_settings, [], _worker_settings, [])
         _worker_settings(RogerthatSettings.query().get())
 
-def _worker_settings(settings):
-    tomorrow = now() + 86400
-    run_job(_query_locations, [settings.sik, tomorrow], _worker_locations, [])
+#def _worker_settings(settings):
+#    tomorrow = now() + 86400
+#    run_job(_query_locations, [settings.sik, tomorrow], _worker_locations, [])
 
 
 def _query_locations(sik, epoch):
