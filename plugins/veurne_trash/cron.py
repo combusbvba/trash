@@ -28,6 +28,7 @@ from plugins.veurne_trash.models import UserLocation
 from plugins.veurne_trash.plugin_bizz import get_api_collections, update_user_data, send_collection_message
 from plugins.veurne_trash.plugin_utils import today
 from plugins.rogerthat_api.models.settings import RogerthatSettings
+from plugins.rogerthat_api import plugin_consts
 from framework.utils import now
 import webapp2
 
@@ -36,11 +37,11 @@ class BroadcastNotificationsHandler(webapp2.RequestHandler):
 
     def get(self):
 #        run_job(_query_settings, [], _worker_settings, [])
-        _worker_settings(RogerthatSettings.query().get())
+        _worker_settings(RogerthatSettings.query(namespace=plugin_consts.NAMESPACE).get())
 
-#def _worker_settings(settings):
-#    tomorrow = now() + 86400
-#    run_job(_query_locations, [settings.sik, tomorrow], _worker_locations, [])
+def _worker_settings(settings):
+    tomorrow = now() + 86400
+    run_job(_query_locations, [settings.sik, tomorrow], _worker_locations, [])
 
 
 def _query_locations(sik, epoch):
