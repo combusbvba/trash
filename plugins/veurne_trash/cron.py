@@ -36,8 +36,11 @@ import webapp2
 class BroadcastNotificationsHandler(webapp2.RequestHandler):
 
     def get(self):
-#        run_job(_query_settings, [], _worker_settings, [])
-        _worker_settings(RogerthatSettings.query(namespace=plugin_consts.NAMESPACE).get())
+        run_job(_query_settings, [], _worker_settings, [], keys_only=False)
+#        _worker_settings(RogerthatSettings.query(namespace=plugin_consts.NAMESPACE).get())
+
+def _query_settings():
+    return RogerthatSettings.query(namespace=plugin_consts.NAMESPACE)
 
 def _worker_settings(settings):
     tomorrow = now() + 86400
@@ -57,7 +60,8 @@ def _worker_locations(ul_key):
         logging.error("broadcast collection message failed double run")
         return
 
-    collections = get_api_collections(ul.sik, ul.street_number, ul.house_number, ul.house_bus, today())
+    straat_naam = ul.address.rstrip("1234567890 ")
+    collections = get_api_collections(ul.sik, straat_naam, ul.house_number, ul.house_bus, today())
     names = []
     for collection in collections:
         if now_ > collection.epoch:
