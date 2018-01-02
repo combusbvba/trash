@@ -113,7 +113,7 @@ def get_api_activities(sik):
     lijstAFVAL = []
     lijstAFVAL.append([7 , 'Grofvuil op afroep'])
     lijstAFVAL.append([21 , 'Restafval'])
-    lijstAFVAL.append([23 , 'Kerstboom'])
+    lijstAFVAL.append([23 , 'Kerstbomen'])
     lijstAFVAL.append([27 , 'Papier en karton Zone 1'])
     lijstAFVAL.append([37 , 'Papier en karton Zone 2'])
     lijstAFVAL.append([47 , 'Papier en karton Zone 3'])
@@ -168,7 +168,7 @@ def get_api_collections(sik, street_name, house_number, house_bus, time_from):
         lijst1.append(str(date.dt))
         if str(summary)=="Grofvuil op afroep": summaryID = 7
         if str(summary)=="Restafval": summaryID=21
-        if str(summary)=="Kerstboom": summaryID=23
+        if str(summary)=="Kerstbomen": summaryID=23
         if str(summary)=="Papier en karton Zone 1": summaryID=27
         if str(summary)=="Papier en karton Zone 2": summaryID=37
         if str(summary)=="Papier en karton Zone 3": summaryID=47
